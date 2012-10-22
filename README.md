@@ -1,26 +1,15 @@
-es-plus-parser
-==============
+arduino-sullair-reset
+=====================
 
-ESPlusDataStringParser is a Cocoa class intended to decode data from a Gardner Denver® 
-ES+® compressor controller. Data from the controller is in the form of a string 
-of ASCII characters. Support is available for all three controller responses
-which includes:
+This is an Arduino sketch for resetting Maintenance reminders on Sullair® SupervisorII® and WS® controllers.
 
-Operating Data
+Connection to the controller is via a RS485 connection.
 
-Operating Mode
+A level shifter is required for Arduino's TTL logic to RS485 levels.
 
-Service Data
+Digital Pin 2 is allocated for direction control of the level shifter.
 
-This class was written based on the protocol specification outlined in the 
-Gardner Denver® drawing number 305EAU1255. This class should also work with
-RS2000® controllers as well. However, the RS2000® controller does not support
-motor current monitoring and will always return 0 for this value.
+Digital Pins 3-8 trigger which messages are sent to the controller.
 
-This class does not support stripping of the STX (start) and ETX (end) characters and they
-must be stripped before parsing. This class was written to work in conjunction with
-an Arduino based JSON server that can be found at http://github.com/madpenguin8/arduino-es-plus-server
-This class should also works well through direct access of data via the RS232 or RS485
-ports provided by the controller for remote monitoring.
-
+Simple debounce logic is provided but the messages will repeat once a second, this needs to be a one-shot.
 
