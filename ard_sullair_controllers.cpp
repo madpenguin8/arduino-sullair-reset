@@ -6,17 +6,6 @@
 // madpenguin8@yahoo.com
 ///////////////////////////////////////////////////////
 
-// RTS pin
-const int rtsPin = 2;
-
-// Button inputs
-const int maintWarnPin = 3;
-const int oilFilterPin = 4;
-const int separatorPin = 5;
-const int airFilterPin = 6;
-const int oilPin = 7;
-const int oilAnalysisPin = 8;
-
 // Serial messages excluding trailing checksum, they are generated later.
 char maintWarnMsg[] = {"01P54,2000,"};
 char oilFilterMsg[] = {"01P55,2000,"};
@@ -33,20 +22,18 @@ long interval = 1000;
 
 void  setup()
 {
-    // Setup RTS pin.
-    pinMode(rtsPin, OUTPUT);
-    digitalWrite(rtsPin, LOW);
-
-    // Setup input pins
-    pinMode(maintWarnPin, INPUT);
-    pinMode(oilFilterPin, INPUT);
-    pinMode(separatorPin, INPUT);
-    pinMode(airFilterPin, INPUT);
-    pinMode(oilPin, INPUT);
-    pinMode(oilAnalysisPin, INPUT);
-
     // Setup serial port
     Serial.begin(9600);
+
+    // Setup pin 2 as RTS out.
+    DDRD = DDRD | B00000100;
+
+    // Setup input pins 3-8
+    DDRD = DDRD & B00000111;
+    DDRB = DDRB & B11111110;
+
+    // Set RTS LOW
+    PORTD &= B11111011;
 }
 
 void loop()
@@ -61,6 +48,7 @@ void loop()
 
     // Provides debounce
     if(currentMillis - previousMillis > interval){
+        previousMillis = millis();
         readButtonInputs();
     }
 }
@@ -69,64 +57,35 @@ void readButtonInputs()
 {
     // Read button states and act on them
     // Return from the function on first high button
-    if(digitalRead(maintWarnPin)){
-        sendMessge(maintWarnPin);
-        return;
-    }
-    
-    if(digitalRead(oilFilterPin)){
-        sendMessge(oilFilterPin);
-        return;
-    }
-    
-    if(digitalRead(separatorPin)){
-        sendMessge(separatorPin);
-        return;
-    }
-    
-    if(digitalRead(airFilterPin)){
-        sendMessge(airFilterPin);
-        return;
-    }
-    
-    if(digitalRead(oilPin)){
-        sendMessge(oilPin);
-        return;
-    }
-    
-    if(digitalRead(oilAnalysisPin)){
-        sendMessge(oilAnalysisPin);
-        return;
-    }
-}
 
-void sendMessge(int messageType)
-{
-    // Reset the debounce timer
-    previousMillis = millis();
+    if(PIND & B00001000){ // Pin 3
+        resetMaintenanceWarning();
+        return;
+    }
 
-    // Send selected message type
-    switch (messageType){
-        case maintWarnPin:
-            resetMaintenanceWarning();
-            break;
-        case oilFilterPin:
-            resetOilFilter();
-            break;
-        case separatorPin:
-            resetSeparator();
-            break;
-        case airFilterPin:
-            resetAirFilter();
-            break;
-        case oilPin:
-            resetOil();
-            break;
-        case oilAnalysisPin:
-            resetOilAnalysis();
-            break;
-        default:
-            return;
+    if(PIND & B00010000){ // Pin 4
+        resetOilFilter();
+        return;
+    }
+
+    if(PIND & B00100000){ // Pin 5
+        resetSeparator();
+        return;
+    }
+
+    if(PIND & B01000000){ // Pin 6
+        resetAirFilter();
+        return;
+    }
+
+    if(PIND & B10000000){ // Pin 7
+        resetOil();
+        return;
+    }
+
+    if(PINB & B00000001){ // Pin 8
+        resetOilAnalysis();
+        return;
     }
 }
 
@@ -135,7 +94,7 @@ void sendMessge(int messageType)
 void resetMaintenanceWarning()
 {
     // Set RS485 shifter to transmit
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     // Begin serial message
     Serial.write(2); // <STX> marks begining of message
     Serial.print(maintWarnMsg);
@@ -145,67 +104,67 @@ void resetMaintenanceWarning()
     // Wait a millisecond
     delay(1);
     // Return RS485 shifter to receive
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 void resetOilFilter()
 {
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     Serial.write(2);
     Serial.print(oilFilterMsg);
     Serial.print(checksum(oilFilterMsg), HEX);
     Serial.println();
     Serial.flush();
     delay(1);
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 void resetSeparator()
 {
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     Serial.write(2);
     Serial.print(separatorMsg);
     Serial.print(checksum(separatorMsg), HEX);
     Serial.println();
     Serial.flush();
     delay(1);
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 void resetAirFilter()
 {
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     Serial.write(2);
     Serial.print(airFilterMsg);
     Serial.print(checksum(airFilterMsg), HEX);
     Serial.println();
     Serial.flush();
     delay(1);
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 void resetOil()
 {
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     Serial.write(2);
     Serial.print(oilMsg);
     Serial.print(checksum(oilMsg), HEX);
     Serial.println();
     Serial.flush();
     delay(1);
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 void resetOilAnalysis()
 {
-    digitalWrite(rtsPin, HIGH);
+    PORTD |= B00000100;
     Serial.write(2);
     Serial.print(oilAnalysisMsg);
     Serial.print(checksum(oilAnalysisMsg), HEX);
     Serial.println();
     Serial.flush();
     delay(1);
-    digitalWrite(rtsPin, LOW);
+    PORTD &= B11111011;
 }
 
 // Generate the message checksum
