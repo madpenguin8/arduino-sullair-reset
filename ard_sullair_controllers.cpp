@@ -6,14 +6,6 @@
 // madpenguin8@yahoo.com
 ///////////////////////////////////////////////////////
 
-// Serial messages excluding trailing checksum, they are generated later.
-//char maintWarnMsg[] = {"01P54,2000,"};
-//char oilFilterMsg[] = {"01P55,2000,"};
-//char separatorMsg[] = {"01P56,8000,"};
-//char airFilterMsg[] = {"01P57,2000,"};
-//char oilMsg[] = {"01P58,8000,"};
-//char oilAnalysisMsg[] = {"01P59,2000,"};
-
 //// Message Order ////
 // Maintenance Warning - 0
 // Oil Filter - 1
@@ -69,28 +61,35 @@ void readButtonInputs()
 {
     // Read button states and act on them
     // Return from the function on first high button
+    // Send maintenance warning clear first, then
+    // send the actual message.
 
     if(PIND & B00001000){ // Pin 3
+        sendResetMessage(0);
         sendResetMessage(1);
         return;
     }
 
     if(PIND & B00010000){ // Pin 4
+        sendResetMessage(0);
         sendResetMessage(2);
         return;
     }
 
     if(PIND & B00100000){ // Pin 5
+        sendResetMessage(0);
         sendResetMessage(3);
         return;
     }
 
     if(PIND & B01000000){ // Pin 6
+        sendResetMessage(0);
         sendResetMessage(4);
         return;
     }
 
     if(PIND & B10000000){ // Pin 7
+        sendResetMessage(0);
         sendResetMessage(5);
         return;
     }
@@ -105,10 +104,15 @@ void sendResetMessage(int selected)
     Serial.print(messages[selected]);
     Serial.println(checksum(messages[selected]), HEX);
     Serial.flush();
-    // Wait a millisecond
-    delay(1);
+    // Wait 2 milliseconds for CR-LF to clear.
+    delay(2);
     // Return RS485 shifter to receive
     PORTD &= B11111011;
+    // Read the controllers response, we might use it later
+    while(Serial.available()){
+		delay(1);
+		Serial.read();
+    }
 }
 
 // Generate the message checksum
