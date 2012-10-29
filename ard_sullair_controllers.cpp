@@ -59,39 +59,33 @@ void loop()
 
 void readButtonInputs()
 {
-    // Read button states and act on them
-    // Return from the function on first high button
+    // Read button states and act on first high
     // Send maintenance warning clear first, then
     // send the actual message.
 
     if(PIND & B00001000){ // Pin 3
         sendResetMessage(0);
         sendResetMessage(1);
-        return;
     }
 
-    if(PIND & B00010000){ // Pin 4
+    else if(PIND & B00010000){ // Pin 4
         sendResetMessage(0);
         sendResetMessage(2);
-        return;
     }
 
-    if(PIND & B00100000){ // Pin 5
+    else if(PIND & B00100000){ // Pin 5
         sendResetMessage(0);
         sendResetMessage(3);
-        return;
     }
 
-    if(PIND & B01000000){ // Pin 6
+    else if(PIND & B01000000){ // Pin 6
         sendResetMessage(0);
         sendResetMessage(4);
-        return;
     }
 
-    if(PIND & B10000000){ // Pin 7
+    else if(PIND & B10000000){ // Pin 7
         sendResetMessage(0);
         sendResetMessage(5);
-        return;
     }
 }
 
