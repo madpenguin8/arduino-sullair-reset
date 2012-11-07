@@ -14,10 +14,9 @@
 // Oil - 4
 // Oil Analysis - 5
 
-char* messages[] = {"01P54,2000,",
-    "01P55,2000,", "01P56,8000,",
-    "01P57,2000,", "01P58,8000,",
-    "01P59,2000,"};
+char* messages[] = {"01P54,2000,", "01P55,2000,",
+                    "01P56,8000,", "01P57,2000,",
+                    "01P58,8000,", "01P59,2000,"};
 
 // Previous uptime value for timer.
 long previousMillis = 0;
@@ -38,6 +37,13 @@ void  setup()
 
     // Set RTS LOW
     PORTD &= B11111011;
+
+    // Set remianing pins to output and high (for powersave)
+    DDRB = B11111111;
+    PORTB = B11111111;
+
+    // Disable the ADC (for powersave)
+    ADCSRA = 0;
 }
 
 void loop()
@@ -112,10 +118,10 @@ void sendResetMessage(int selected)
 // Generate the message checksum
 int checksum (char * str)
 {
-    byte sum = 0 ;
-    char ch ;
+    byte sum = 0;
+    char ch;
     while ((ch = *str++) != 0)
-        sum -= ch ;
-    return sum ;
+        sum -= ch;
+    return sum;
 }
 
